@@ -190,4 +190,32 @@ Response/s
 ```json
 404 NOT FOUND (No body)
 ```
+
+#### Update user details
+Verify a registered user. All fields are required.
+```json
+PATCH /{user_id}
+Header - Reference-Number: 123
+{
+    "first_name": "Eren",
+    "last_name": "Yeager",
+    "birth_date": "1999-12-12".
+    "password": "$tronger",
+    "is_active": false
+}
+```
+Response/s
+```json
+200 OK
+{
+    "message": "update success"
+}
+```
+```json
+400 BAD_REQUEST
+{
+    "message": "age must be at least 18"
+}
+```
+
 [postman]: <https://www.getpostman.com/collections/4c165e4e7076eb63a132>
