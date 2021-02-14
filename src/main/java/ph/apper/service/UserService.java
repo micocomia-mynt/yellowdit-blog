@@ -18,5 +18,5 @@ public interface UserService {
     List<UserData> getAllUsers(boolean excludeUnverified, boolean excludeInactive);
     UserData getUser(String id) throws UserNotFoundException;
     void deleteUser(String id) throws UserNotFoundException;
-    void updateUser(String id, UpdateUserRequest request) throws UserNotFoundException;
+    void updateUser(String id, UpdateUserRequest request) throws UserNotFoundException, InvalidUserRegistrationRequestException;
 }

@@ -19,12 +19,9 @@ import ph.apper.util.IdService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 @Profile({"local"})
@@ -136,7 +133,7 @@ public class LocalUserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UpdateUserRequest request) throws UserNotFoundException {
+    public void updateUser(String id, UpdateUserRequest request) throws UserNotFoundException {
 
     }
 

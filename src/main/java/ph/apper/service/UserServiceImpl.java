@@ -11,6 +11,7 @@ import ph.apper.exception.InvalidLoginCredentialException;
 import ph.apper.exception.InvalidUserRegistrationRequestException;
 import ph.apper.exception.InvalidVerificationRequestException;
 import ph.apper.exception.UserNotFoundException;
+import ph.apper.payload.UpdateUserRequest;
 import ph.apper.payload.UserData;
 import ph.apper.payload.UserRegistrationRequest;
 import ph.apper.payload.UserRegistrationResponse;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -121,19 +123,52 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserData getUser(String id) throws UserNotFoundException {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
+        User user = getUserById(id);
         return UserServiceUtil.toUserData(user);
     }
 
     @Override
     public void deleteUser(String id) throws UserNotFoundException {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
+        User user = getUserById(id);
         user.setActive(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void updateUser(String id, UpdateUserRequest request) throws UserNotFoundException, InvalidUserRegistrationRequestException {
+        User user = getUserById(id);
+
+        if (Objects.nonNull(request.getFirstName())) {
+            user.setFirstName(request.getFirstName());
+        }
+
+        if (Objects.nonNull(request.getLastName())) {
+            user.setLastName(request.getLastName());
+        }
+
+        if (Objects.nonNull(request.getBirthDate())) {
+            LocalDate parsedBirthDate = LocalDate.parse(request.getBirthDate());
+            UserServiceUtil.validateUserAge(parsedBirthDate);
+            user.setBirthDate(parsedBirthDate);
+        }
+
+        if (Objects.nonNull(request.getPassword())) {
+            user.setPassword(BCrypt.withDefaults().hashToString(4, request.getPassword().toCharArray()));
+        }
+
+        if (Objects.nonNull(request.getIsActive())) {
+            user.setActive(request.getIsActive());
+        }
+
         userRepository.save(user);
     }
 
     private boolean isRegisteredAndVerifiedUser(String email) {
         Optional<User> emailQ = userRepository.findByEmail(email);
         return emailQ.isPresent() && emailQ.get().isVerified();
+    }
+
+    private User getUserById(String id) throws UserNotFoundException {
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
     }
 }

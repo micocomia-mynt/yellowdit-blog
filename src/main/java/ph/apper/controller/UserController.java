@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import ph.apper.exception.InvalidVerificationRequestException;
 import ph.apper.exception.UserNotFoundException;
 import ph.apper.payload.GenericResponse;
 import ph.apper.payload.LoginRequest;
+import ph.apper.payload.UpdateUserRequest;
 import ph.apper.payload.UserData;
 import ph.apper.payload.UserRegistrationRequest;
 import ph.apper.payload.UserRegistrationResponse;
@@ -101,5 +103,19 @@ public class UserController {
         LOGGER.info("Delete user with reference number {} successful", referenceNumber);
 
         return ResponseEntity.ok(new GenericResponse("delete user success"));
+    }
+
+    @PatchMapping("{id}")
+    public ResponseEntity<GenericResponse> updateUser(
+            @PathVariable String id,
+            @RequestHeader("Reference-Number") String referenceNumber,
+            @Valid @RequestBody UpdateUserRequest request) throws UserNotFoundException, InvalidUserRegistrationRequestException {
+        LOGGER.info("Update user with reference number {} received", referenceNumber);
+
+        userService.updateUser(id, request);
+
+        LOGGER.info("Update user with reference number {} successful", referenceNumber);
+
+        return ResponseEntity.ok(new GenericResponse("update user success"));
     }
 }
