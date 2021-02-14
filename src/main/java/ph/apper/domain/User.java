@@ -2,11 +2,16 @@ package ph.apper.domain;
 
 import lombok.Data;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
+@Entity
 public class User {
+
+    @Id
     private String id;
     private String email;
     private String password;
@@ -22,5 +27,8 @@ public class User {
 
     public User(String id) {
         this.id = id;
+    }
+
+    public User() {
     }
 }

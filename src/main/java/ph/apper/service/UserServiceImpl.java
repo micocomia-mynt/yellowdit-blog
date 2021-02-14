@@ -11,30 +11,34 @@ import ph.apper.exception.InvalidLoginCredentialException;
 import ph.apper.exception.InvalidUserRegistrationRequestException;
 import ph.apper.exception.InvalidVerificationRequestException;
 import ph.apper.exception.UserNotFoundException;
-import ph.apper.payload.UpdateUserRequest;
 import ph.apper.payload.UserData;
 import ph.apper.payload.UserRegistrationRequest;
 import ph.apper.payload.UserRegistrationResponse;
+import ph.apper.repository.UserRepository;
+import ph.apper.repository.VerificationCodeRepository;
 import ph.apper.util.IdService;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-@Profile({"local"})
+@Profile({"dev","prod"})
 @Service
-public class LocalUserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService{
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocalUserServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private final List<User> users = new ArrayList<>();
-    private final List<VerificationCode> verificationCodes = new ArrayList<>();
+    private final UserRepository userRepository;
+    private final VerificationCodeRepository verificationCodeRepository;
+
+    public UserServiceImpl(UserRepository userRepository, VerificationCodeRepository verificationCodeRepository) {
+        this.userRepository = userRepository;
+        this.verificationCodeRepository = verificationCodeRepository;
+    }
 
     @Override
     public UserRegistrationResponse register(UserRegistrationRequest request) throws InvalidUserRegistrationRequestException {
@@ -63,38 +67,39 @@ public class LocalUserServiceImpl implements UserService {
 
         VerificationCode verificationCode = new VerificationCode(request.getEmail(), code);
 
-        users.add(newUser);
-        verificationCodes.add(verificationCode);
+        userRepository.save(newUser);
+        verificationCodeRepository.save(verificationCode);
 
         return new UserRegistrationResponse(code);
     }
 
     @Override
-    public void verify(String email, String code) throws InvalidVerificationRequestException {
+    public void verify(String email, String verificationCode) throws InvalidVerificationRequestException {
         if (isRegisteredAndVerifiedUser(email)) {
             throw new InvalidVerificationRequestException("email already registered");
         }
 
-        VerificationCode verifiedUserEmail = verificationCodes.stream()
-                .filter(verificationCode -> email.equals(verificationCode.getEmail()) && code.equals(verificationCode.getCode()))
-                .findFirst()
+        VerificationCode verifiedUserEmail = verificationCodeRepository.findByEmailAndCode(email, verificationCode)
                 .orElseThrow(() -> new InvalidVerificationRequestException("Invalid verification request"));
 
-        verificationCodes.remove(verifiedUserEmail);
+        verificationCodeRepository.delete(verifiedUserEmail);
 
-        User user = getUserByEmail(email);
+        User user = userRepository.findByEmail(email).orElseThrow();
         user.setVerified(true);
         user.setActive(true);
         user.setDateVerified(LocalDateTime.now());
+
+        userRepository.save(user);
     }
 
     @Override
     public UserData login(String email, String password) throws InvalidLoginCredentialException {
         try {
-            User user = getUserByEmail(email);
+            User user = userRepository.findByEmail(email).orElseThrow();
             BCrypt.Result verify = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
             if (user.isVerified() && user.isActive() && verify.verified) {
                 user.setLastLogin(LocalDateTime.now());
+                userRepository.save(user);
                 return UserServiceUtil.toUserData(user);
             }
         } catch (Exception e) {
@@ -105,18 +110,10 @@ public class LocalUserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public List<UserData> getAllUsers(boolean excludeUnverified, boolean excludeInactive) {
         List<UserData> userDataList = new ArrayList<>();
-        Stream<User> userStream = users.stream();
-
-        if (excludeUnverified) {
-            userStream = userStream.filter(User::isVerified);
-        }
-
-        if (excludeInactive) {
-            userStream = userStream.filter(User::isActive);
-        }
-
+        Stream<User> userStream = userRepository.findAllByIsVerifiedAndIsActive(excludeUnverified, excludeInactive);
         userStream.forEach(user -> userDataList.add(UserServiceUtil.toUserData(user)));
 
         return userDataList;
@@ -124,41 +121,19 @@ public class LocalUserServiceImpl implements UserService {
 
     @Override
     public UserData getUser(String id) throws UserNotFoundException {
-        User u = getUserById(id);
-
-        return UserServiceUtil.toUserData(u);
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
+        return UserServiceUtil.toUserData(user);
     }
 
     @Override
     public void deleteUser(String id) throws UserNotFoundException {
-        User user = getUserById(id);
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
         user.setActive(false);
-    }
-
-    @Override
-    public void updateUser(UpdateUserRequest request) throws UserNotFoundException {
-
+        userRepository.save(user);
     }
 
     private boolean isRegisteredAndVerifiedUser(String email) {
-        try {
-            return getUserByEmail(email).isVerified();
-        } catch (NoSuchElementException e) {
-            return false;
-        }
-    }
-
-    private User getUserById(String id) throws UserNotFoundException {
-        return users.stream()
-                .filter(user -> id.equals(user.getId()))
-                .findFirst()
-                .orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
-    }
-
-    private User getUserByEmail(String email) {
-        return users.stream()
-                .filter(user -> email.equals(user.getEmail()))
-                .findFirst()
-                .orElseThrow();
+        Optional<User> emailQ = userRepository.findByEmail(email);
+        return emailQ.isPresent() && emailQ.get().isVerified();
     }
 }
