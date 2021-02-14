@@ -2,12 +2,14 @@ package ph.apper.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import ph.apper.exception.InvalidLoginCredentialException;
 import ph.apper.exception.InvalidUserRegistrationRequestException;
 import ph.apper.exception.InvalidVerificationRequestException;
@@ -52,5 +54,12 @@ public class ServiceExceptionHandler {
         }
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public GenericResponse handleUncaughtExceptions(Exception e) {
+        LOGGER.error("Internal error", e);
+        return new GenericResponse(e.getMessage());
     }
 }
