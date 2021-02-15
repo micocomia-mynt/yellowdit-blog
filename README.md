@@ -249,6 +249,29 @@ Response/s
     "message": "User is not verified and active"
 }
 ```
+#### Comment
+All parameters are required
+```json
+POST /{blog_id}/comment
+Header - Reference-Number: 123
+{
+    "name": "John Doe",
+    "comment": "Sample comment"
+}
+```
+Response/s
+```json
+200 OK
+{
+  "message": "Comment added successfully"
+}
+```
+```json
+400 BAD REQUEST
+{
+  "message": "User not found"
+}
+```
 #### Get a blog
 All fields are required.
 ```json
@@ -420,28 +443,5 @@ Response/s
     "date_publish": "2021-02-15T18:39:49.909797",
     "last_updated": null,
     "is_visible": false
-}
-```
-#### Comment
-All parameters are required
-```json
-POST /{blog_id}/comment
-Header - Reference-Number: 123
-{
-    "name": "John Doe",
-    "comment": "Sample comment"
-}
-```
-Response/s
-```json
-200 OK
-{
-  "message": "Comment added successfully"
-}
-```
-```json
-400 BAD REQUEST
-{
-  "message": "User not found"
 }
 ```

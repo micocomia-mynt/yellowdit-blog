@@ -14,6 +14,7 @@ import ph.apper.payload.BlogCommentRequest;
 import ph.apper.payload.BlogCreationRequest;
 import ph.apper.payload.BlogData;
 import ph.apper.payload.UpdateBlogRequest;
+import ph.apper.util.IdService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,8 +40,14 @@ public class LocalBlogServiceImpl implements BlogService{
             throw new UserNotVerifiedActive("Provided user ID is not active and verified");
         }
 
-        Blog newBlog = new Blog();
+        try{
+            userService.getUser(request.getUserId());
+        }catch(UserNotFoundException e){
+            LOGGER.error("User not found", e.getMessage());
+        }
 
+        String blogId = IdService.getNextId();
+        Blog newBlog = new Blog(blogId);
         newBlog.setContent(request.getContent());
         newBlog.setTitle(request.getTitle());
         newBlog.setUserId(request.getUserId());
@@ -97,14 +104,17 @@ public class LocalBlogServiceImpl implements BlogService{
         Blog blog = getBlogById(id);
         int index = blogs.indexOf(blog);
 
+        if (!blog.isVisible()){
+            throw new BlogNotFoundException("Blog does not exist");
+        }
+
         List<Comment> comments = blog.getComments();
 
         Comment newComment = new Comment();
         newComment.setName(request.getName());
         newComment.setComment(request.getComment());
 
-        comments.add(newComment);
-        blog.setComments(comments);
+        blog.getComments().add(newComment);
 
         blogs.set(index, blog);
         return "Comment added successfully";

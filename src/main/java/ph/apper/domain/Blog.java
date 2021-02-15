@@ -22,7 +22,7 @@ public class Blog {
 
     @OneToMany(targetEntity = Comment.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "comment_id")
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
     public Blog(String id) {
         this.id = id;

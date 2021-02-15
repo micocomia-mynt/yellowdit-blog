@@ -107,6 +107,10 @@ public class BlogServiceImpl implements BlogService{
     public String comment(String id, BlogCommentRequest request) throws BlogNotFoundException {
         Blog blog = getBlogById(id);
 
+        if (!blog.isVisible()){
+            throw new BlogNotFoundException("Blog does not exist");
+        }
+
         Comment newComment = new Comment();
         newComment.setName(request.getName());
         newComment.setComment(request.getComment());
