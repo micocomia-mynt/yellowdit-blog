@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ph.apper.domain.User;
 import ph.apper.domain.VerificationCode;
-import ph.apper.exception.InvalidLoginCredentialException;
-import ph.apper.exception.InvalidUserRegistrationRequestException;
-import ph.apper.exception.InvalidVerificationRequestException;
-import ph.apper.exception.UserNotFoundException;
+import ph.apper.exception.*;
 import ph.apper.payload.UpdateUserRequest;
 import ph.apper.payload.UserData;
 import ph.apper.payload.UserRegistrationRequest;
@@ -19,6 +16,7 @@ import ph.apper.util.IdService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -43,7 +41,7 @@ public class LocalUserServiceImpl implements UserService {
         }
 
         // get user id
-        String userId = IdService.getNextUserId();
+        String userId = IdService.getNextId();
 
         LOGGER.info("Generated User ID: {}", userId);
         // save registration details as User with ID
@@ -133,8 +131,47 @@ public class LocalUserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(String id, UpdateUserRequest request) throws UserNotFoundException {
+    public void updateUser(String id, UpdateUserRequest request) throws UserNotFoundException, InvalidUserRegistrationRequestException {
+        User user = getUserById(id);
+        int index = users.indexOf(user);
 
+        if (request.getFirstName() != null){
+            user.setFirstName(request.getFirstName());
+        }
+
+        if (request.getLastName() != null){
+            user.setLastName(request.getLastName());
+        }
+
+        if (request.getPassword() != null){
+            user.setPassword(BCrypt.withDefaults().hashToString(4, request.getPassword().toCharArray()));
+        }
+
+        if (request.getBirthDate() != null){
+            LocalDate parsedBirthDate = LocalDate.parse(request.getBirthDate());
+            Period periodDiff = Period.between(parsedBirthDate, LocalDate.now());
+            if (periodDiff.getYears() < 18) {
+                throw new InvalidUserRegistrationRequestException("age must be at least 18");
+            }
+
+            user.setBirthDate(parsedBirthDate);
+        }
+
+        if (request.getIsActive() != null){
+            user.setActive(request.getIsActive());
+        }
+
+        users.set(index, user);
+    }
+
+    @Override
+    public boolean checkVerification(String id) throws UserNotFoundException, UserNotVerifiedActive {
+        User user = getUserById(id);
+        if (!user.isActive() || !user.isVerified()){
+            throw new UserNotVerifiedActive("Provided user ID is not active and verified");
+        }
+
+        return true;
     }
 
     private boolean isRegisteredAndVerifiedUser(String email) {

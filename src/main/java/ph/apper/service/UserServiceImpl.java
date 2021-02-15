@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ph.apper.domain.User;
 import ph.apper.domain.VerificationCode;
-import ph.apper.exception.InvalidLoginCredentialException;
-import ph.apper.exception.InvalidUserRegistrationRequestException;
-import ph.apper.exception.InvalidVerificationRequestException;
-import ph.apper.exception.UserNotFoundException;
+import ph.apper.exception.*;
 import ph.apper.payload.UpdateUserRequest;
 import ph.apper.payload.UserData;
 import ph.apper.payload.UserRegistrationRequest;
@@ -52,7 +49,7 @@ public class UserServiceImpl implements UserService{
         }
 
         // get user id
-        String userId = IdService.getNextUserId();
+        String userId = IdService.getNextId();
 
         LOGGER.info("Generated User ID: {}", userId);
         // save registration details as User with ID
@@ -161,6 +158,15 @@ public class UserServiceImpl implements UserService{
         }
 
         userRepository.save(user);
+    }
+
+    @Override
+    public boolean checkVerification(String id) throws UserNotFoundException{
+        User user = getUserById(id);
+        if (!user.isActive() || !user.isVerified()){
+            return false;
+        }
+        return true;
     }
 
     private boolean isRegisteredAndVerifiedUser(String email) {

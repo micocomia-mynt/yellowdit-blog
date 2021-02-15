@@ -10,10 +10,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import ph.apper.exception.InvalidLoginCredentialException;
-import ph.apper.exception.InvalidUserRegistrationRequestException;
-import ph.apper.exception.InvalidVerificationRequestException;
-import ph.apper.exception.UserNotFoundException;
+import ph.apper.exception.*;
 import ph.apper.payload.GenericResponse;
 
 import javax.validation.ConstraintViolationException;
@@ -43,7 +40,10 @@ public class ServiceExceptionHandler {
             InvalidLoginCredentialException.class,
             InvalidUserRegistrationRequestException.class,
             InvalidVerificationRequestException.class,
-            UserNotFoundException.class
+            UserNotFoundException.class,
+            BlogNotFoundException.class,
+            InvalidBlogCreationRequestException.class,
+            UserNotVerifiedActive.class
     })
     public ResponseEntity<GenericResponse> handleLogicExceptions(Exception e) {
         LOGGER.error("Service error", e);

@@ -1,9 +1,6 @@
 package ph.apper.service;
 
-import ph.apper.exception.InvalidLoginCredentialException;
-import ph.apper.exception.InvalidUserRegistrationRequestException;
-import ph.apper.exception.InvalidVerificationRequestException;
-import ph.apper.exception.UserNotFoundException;
+import ph.apper.exception.*;
 import ph.apper.payload.UpdateUserRequest;
 import ph.apper.payload.UserData;
 import ph.apper.payload.UserRegistrationRequest;
@@ -19,4 +16,5 @@ public interface UserService {
     UserData getUser(String id) throws UserNotFoundException;
     void deleteUser(String id) throws UserNotFoundException;
     void updateUser(String id, UpdateUserRequest request) throws UserNotFoundException, InvalidUserRegistrationRequestException;
+    boolean checkVerification(String id) throws UserNotFoundException, UserNotVerifiedActive;
 }

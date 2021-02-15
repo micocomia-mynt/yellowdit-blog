@@ -5,7 +5,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import java.util.UUID;
 
 public final class IdService {
-    public static String getNextUserId() {
+    public static String getNextId() {
         return UUID.randomUUID().toString();
     }
 

@@ -6,6 +6,7 @@ Yellowdit is a blogging application that only contains great stuff that matters.
 
 Enables client application to manage users, contents, and reviews.
 
+***
 ### User Management (/user)
 CRUD for users. [Sample collections][postman] of API call that can be imported in postman for testing.
 
@@ -219,3 +220,225 @@ Response/s
 ```
 
 [postman]: <https://www.getpostman.com/collections/4c165e4e7076eb63a132>
+
+***
+### Blog Management (/blog)
+CRUD for blog.
+
+#### Create a blog
+Create a blog. All fields are required.
+```json
+POST /
+Header - Reference-Number: 123
+{
+    "title": "Sample Blog",
+    "content": "Sample Content",
+    "user_id": "123",
+}
+```
+Response/s
+```json
+201 CREATED
+{
+  "message": "Blog created successfully"
+}
+```
+```json
+400 BAD_REQUEST
+{
+    "message": "User is not verified and active"
+}
+```
+#### Get a blog
+All fields are required.
+```json
+GET /{blog_id}
+```
+Response/s
+```json
+200 OK
+{
+  "id": "fe8c3a3c-174e-416e-bb18-a59c8a88103c",
+  "title": "Updated Title",
+  "content": "Update content",
+  "comments": [
+    {
+      "id": 1,
+      "name": "Mico",
+      "comment": "Comment 1"
+    },
+    {
+      "id": 2,
+      "name": "John",
+      "comment": "Comment 2"
+    },
+    {
+      "id": 3,
+      "name": "Doe",
+      "comment": "Comment 3"
+    }
+  ],
+  "user_id": "123",
+  "date_publish": "2021-02-15T18:39:49.909797",
+  "last_updated": "2021-02-15T18:48:33.307873",
+  "is_visible": true
+},
+```
+```json
+404 NOT FOUND (No body)
+```
+#### Update blog details
+Update the title and content of a blog
+```json
+PATCH /{blog_id}
+Header - Reference-Number: 123
+{
+    "title": "New Title",
+    "content": "New Content",
+}
+```
+Response/s
+```json
+200 OK
+{
+    "message": "update success"
+}
+```
+```json
+400 BAD REQUEST
+{
+    "message": "Blog does not exist"
+}
+```
+#### Delete a blog
+Soft deletes a blog.
+```json
+DELETE /{blog_id}
+Header - Reference-Number: 123
+```
+Response/s
+```json
+200 OK
+{
+    "message": "delete blog success"
+}
+```
+```json
+400 BAD REQUEST
+{
+  "message": "Blog does not exist"
+}
+```
+#### Get all blogs
+With parameter all
+```json
+GET ?all=false
+```
+Response/s
+```json
+200 OK
+{
+  "id": "fe8c3a3c-174e-416e-bb18-a59c8a88103c",
+  "title": "Updated Title",
+  "content": "Update content",
+  "comments": [
+    {
+      "id": 1,
+      "name": "Mico",
+      "comment": "Comment 1"
+    },
+    {
+      "id": 2,
+      "name": "John",
+      "comment": "Comment 2"
+    },
+    {
+      "id": 3,
+      "name": "Doe",
+      "comment": "Comment 3"
+    }
+  ],
+  "user_id": "123",
+  "date_publish": "2021-02-15T18:39:49.909797",
+  "last_updated": "2021-02-15T18:48:33.307873",
+  "is_visible": true
+}
+```
+Request
+```json
+GET ?all=true
+```
+Response/s
+```json
+200 OK
+{
+  "id": "fe8c3a3c-174e-416e-bb18-a59c8a88103c",
+  "title": "Updated Title",
+  "content": "Update content",
+  "comments": [
+    {
+      "id": 1,
+      "name": "Mico",
+      "comment": "Comment 1"
+    },
+    {
+      "id": 2,
+      "name": "John",
+      "comment": "Comment 2"
+    },
+    {
+      "id": 3,
+      "name": "Doe",
+      "comment": "Comment 3"
+    }
+  ],
+  "user_id": "123",
+  "date_publish": "2021-02-15T18:39:49.909797",
+  "last_updated": "2021-02-15T18:48:33.307873",
+  "is_visible": true
+},
+{
+    "id": "ge8c3s3c-1743-416e-bb18-a59c8a88103d",
+    "title": "Sample Blog2",
+    "content": "Sample Content",
+    "comments": [
+        {
+        "id": 4,
+        "name": "Mico",
+        "comment": "Comment 4"
+        },
+        {
+        "id": 5,
+        "name": "John",
+        "comment": "Comment 5"
+        },
+    ],
+    "user_id": "123",
+    "date_publish": "2021-02-15T18:39:49.909797",
+    "last_updated": null,
+    "is_visible": false
+}
+```
+#### Comment
+All parameters are required
+```json
+POST /{blog_id}/comment
+Header - Reference-Number: 123
+{
+    "name": "John Doe",
+    "comment": "Sample comment"
+}
+```
+Response/s
+```json
+200 OK
+{
+  "message": "Comment added successfully"
+}
+```
+```json
+400 BAD REQUEST
+{
+  "message": "User not found"
+}
+```
