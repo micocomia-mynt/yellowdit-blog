@@ -285,7 +285,10 @@ Response/s
 },
 ```
 ```json
-404 NOT FOUND (No body)
+400 BAD REQUEST
+{
+  "message": "Blog does not exist"
+}
 ```
 #### Update blog details
 Update the title and content of a blog
@@ -330,7 +333,7 @@ Response/s
 }
 ```
 #### Get all blogs
-With parameter all
+With parameter "all"
 ```json
 GET ?all=false
 ```
